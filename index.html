@@ -1,0 +1,1036 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Aortic Occlusion Log</title>
+  <meta name="description" content="Aortic Occlusion Log for balloon inflation, deflation and cumulative occlusion documentation." />
+  <style>
+    :root {
+      --bg: #020617;
+      --panel: #0f172a;
+      --panel-2: #020617;
+      --border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --muted-2: #64748b;
+      --red: #b91c1c;
+      --red-hover: #991b1b;
+      --green: #047857;
+      --green-hover: #065f46;
+      --amber: #d97706;
+      --amber-hover: #b45309;
+      --sky: #38bdf8;
+      --radius: 18px;
+      --shadow: 0 16px 40px rgba(0,0,0,0.28);
+      --font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.4;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .stack { display: grid; gap: 16px; }
+
+    .topbar {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    h1, h2, p { margin: 0; }
+
+    h1 {
+      font-size: clamp(28px, 4vw, 42px);
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+
+    .subtle { color: var(--muted); font-size: 14px; }
+    .tiny { color: var(--muted-2); font-size: 12px; }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid #1e293b;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    details.help {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      min-width: 120px;
+    }
+
+    details.help summary {
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .help-content {
+      margin-top: 12px;
+      width: min(300px, 80vw);
+      display: grid;
+      gap: 8px;
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+
+    a { color: var(--sky); }
+
+    .state-box {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      min-width: 220px;
+      font-size: 14px;
+    }
+
+    .state-label { font-weight: 700; color: #e2e8f0; }
+    .state-deflated { color: #6ee7b7; }
+    .state-inflated { color: #fca5a5; }
+    .state-complete { color: #cbd5e1; }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .grid-8 { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 12px; }
+    .grid-5 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+    .grid-buttons { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+
+    label {
+      display: grid;
+      gap: 4px;
+      color: #e2e8f0;
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font: inherit;
+      outline: none;
+    }
+
+    input::placeholder, textarea::placeholder { color: #475569; }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--sky);
+      box-shadow: 0 0 0 3px rgba(56,189,248,0.15);
+    }
+
+    .unit-wrap {
+      display: flex;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      border-radius: 12px;
+    }
+
+    .unit-wrap input {
+      border: 0;
+      border-radius: 0;
+      min-width: 0;
+    }
+
+    .unit {
+      display: flex;
+      align-items: center;
+      border-left: 1px solid var(--border);
+      background: #1e293b;
+      color: #cbd5e1;
+      padding: 0 12px;
+      white-space: nowrap;
+    }
+
+    button {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 14px;
+      background: var(--panel-2);
+      color: var(--text);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.05s ease, opacity 0.15s ease;
+    }
+
+    button:hover { background: #1e293b; }
+    button:active { transform: translateY(1px); }
+    button:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+    .balloon-btn {
+      height: 96px;
+      font-size: clamp(22px, 4vw, 32px);
+      border: 0;
+      color: white;
+    }
+
+    .balloon-up { background: var(--red); }
+    .balloon-up:hover { background: var(--red-hover); }
+    .balloon-down { background: var(--green); }
+    .balloon-down:hover { background: var(--green-hover); }
+
+    .complete-btn {
+      height: 96px;
+      font-size: clamp(18px, 2vw, 22px);
+      background: var(--amber);
+      border-color: #f59e0b;
+      box-shadow: 0 12px 30px rgba(146,64,14,0.35);
+      color: white;
+    }
+    .complete-btn:hover { background: var(--amber-hover); }
+
+    .timer-card {
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+
+    .timer-label {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .timer-value {
+      color: white;
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .confirm {
+      border: 1px solid #d97706;
+      background: rgba(120, 53, 15, 0.72);
+      color: #fef3c7;
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+
+    .confirm.reset {
+      border-color: #dc2626;
+      background: rgba(127,29,29,0.72);
+      color: #fee2e2;
+    }
+
+    .confirm-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .yes-amber { background: var(--amber); color: white; border-color: #f59e0b; }
+    .yes-red { background: #b91c1c; color: white; border-color: #ef4444; }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--panel-2);
+    }
+
+    table {
+      width: 100%;
+      min-width: 1040px;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead { background: #1e293b; color: #e2e8f0; }
+    th, td { padding: 12px; text-align: left; vertical-align: top; }
+    tbody tr { border-top: 1px solid #1e293b; }
+    tbody td { color: #f1f5f9; }
+
+    .notes {
+      min-height: 42px;
+      width: 240px;
+      resize: vertical;
+    }
+
+    .report-box {
+      border: 1px solid #0369a1;
+      background: var(--panel-2);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+
+    .report-box textarea {
+      height: 300px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 13px;
+      white-space: pre;
+    }
+
+    .footer {
+      color: var(--muted-2);
+      font-size: 12px;
+      padding-bottom: 8px;
+    }
+
+    .hidden-frame, .hidden-form {
+      display: none;
+      width: 0;
+      height: 0;
+      border: 0;
+    }
+
+    @media (max-width: 1100px) {
+      .grid-8 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .grid-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 760px) {
+      .container { padding: 12px; }
+      .grid-2, .grid-8, .grid-5, .grid-buttons { grid-template-columns: 1fr; }
+      .top-actions { width: 100%; }
+      .state-box, details.help { width: 100%; }
+      .balloon-btn, .complete-btn { height: 88px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container stack">
+    <header class="topbar">
+      <div>
+        <h1>Aortic Occlusion Log</h1>
+        <p class="subtle">Automatic timestamping for balloon inflation and deflation episodes.</p>
+      </div>
+
+      <div class="top-actions">
+        <details class="help">
+          <summary>Help</summary>
+          <div class="help-content">
+            <p>Use Balloon Up/Down to record inflation and deflation timestamps.</p>
+            <p>Use Copy PACS report text to copy a tab-delimited plain-text table.</p>
+            <p>This logger records timestamps locally in the browser session. Use Copy PACS report text to paste the plain-text table into PACS or the procedural report.</p>
+            <p>Google Sheet backup is attempted once per procedure. Repeated copy/download actions will not create duplicate Sheet entries.</p>
+            <p>Contact: <a href="mailto:nimesh.shah@nhs.net">nimesh.shah@nhs.net</a></p>
+          </div>
+        </details>
+
+        <div class="state-box">
+          <div class="state-label">Current state</div>
+          <div id="stateText" class="state-deflated">Balloon deflated</div>
+        </div>
+      </div>
+    </header>
+
+    <section class="card">
+      <h2>Procedure details</h2>
+      <p class="subtle">Site and procedure date.</p>
+      <div class="grid-2" style="margin-top: 12px;">
+        <label>
+          Institution
+          <input id="institution" type="text" placeholder="Institution / site" />
+        </label>
+        <label>
+          Procedure Date
+          <input id="procedureDate" type="date" />
+        </label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Baseline occlusion values</h2>
+      <p class="subtle">Zone, access, catheter setup and MAP values for the case.</p>
+      <div class="grid-8" style="margin-top: 12px;">
+        <label>
+          REBOA Zone
+          <select id="zone">
+            <option value="Zone I">Zone I</option>
+            <option value="Zone II">Zone II</option>
+            <option value="Zone III" selected>Zone III</option>
+            <option value="Other / not specified">Other / not specified</option>
+          </select>
+        </label>
+
+        <label>
+          Access site
+          <input id="accessSite" type="text" value="Right common femoral artery" placeholder="Access site" />
+        </label>
+
+        <label>
+          Access size
+          <span class="unit-wrap">
+            <input id="accessSize" type="number" min="0" step="1" value="5" placeholder="Number" />
+            <span class="unit">Fr</span>
+          </span>
+        </label>
+
+        <label>
+          Occlusion catheter
+          <input id="occlusionCatheter" type="text" value="COBRA OS" placeholder="Occlusion catheter" />
+        </label>
+
+        <label>
+          Catheter length
+          <span class="unit-wrap">
+            <input id="catheterLength" type="number" min="0" step="0.1" placeholder="Number" />
+            <span class="unit">cm</span>
+          </span>
+        </label>
+
+        <label>
+          Inflation volume
+          <span class="unit-wrap">
+            <input id="inflationVolume" type="number" min="0" step="0.1" placeholder="Number" />
+            <span class="unit">mL</span>
+          </span>
+        </label>
+
+        <label>
+          MAP pre
+          <span class="unit-wrap">
+            <input id="mapPre" type="number" min="0" step="1" placeholder="Number" />
+            <span class="unit">mmHg</span>
+          </span>
+        </label>
+
+        <label>
+          MAP post
+          <span class="unit-wrap">
+            <input id="mapPost" type="number" min="0" step="1" placeholder="Number" />
+            <span class="unit">mmHg</span>
+          </span>
+        </label>
+      </div>
+    </section>
+
+    <section class="card stack">
+      <div id="procedureConfirm" class="confirm" style="display:none;">
+        <div style="font-size:18px;font-weight:800;">Confirm procedure complete</div>
+        <p id="procedureConfirmText" style="margin-top:4px;">
+          This will stop the active timers and disable further balloon event entry.
+        </p>
+        <div class="confirm-actions">
+          <button class="yes-amber" id="confirmProcedureBtn">Yes, complete procedure</button>
+          <button id="cancelProcedureBtn">Cancel</button>
+        </div>
+      </div>
+
+      <div class="grid-buttons">
+        <button id="balloonToggle" class="balloon-btn balloon-up">REBOA Balloon Up</button>
+        <button id="procedureComplete" class="complete-btn">Procedure Complete</button>
+      </div>
+
+      <div class="grid-5">
+        <div class="timer-card">
+          <div class="timer-label">Current inflation started</div>
+          <div id="currentInflationStarted" class="timer-value">—</div>
+        </div>
+        <div class="timer-card">
+          <div class="timer-label">Active occlusion duration</div>
+          <div id="activeOcclusionDuration" class="timer-value">—</div>
+        </div>
+        <div class="timer-card">
+          <div class="timer-label">Current deflation duration</div>
+          <div id="currentDeflationDuration" class="timer-value">—</div>
+        </div>
+        <div class="timer-card">
+          <div class="timer-label">Procedure complete time</div>
+          <div id="procedureCompleteTimeDisplay" class="timer-value">—</div>
+        </div>
+        <div class="timer-card">
+          <div class="timer-label">Cumulative completed occlusion</div>
+          <div id="cumulativeOcclusion" class="timer-value">0 min 00 sec</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stack">
+      <div class="topbar">
+        <div>
+          <h2>Occlusion Episodes</h2>
+          <p class="subtle">The copy output is tab-delimited plain text for PACS/reporting systems.</p>
+        </div>
+        <div class="top-actions">
+          <button id="copyPacs">Copy PACS report text</button>
+          <button id="downloadText">Download text</button>
+        </div>
+      </div>
+
+      <div id="copyStatus" class="subtle" style="display:none;"></div>
+
+      <div id="reportBox" class="report-box" style="display:none;">
+        <div class="topbar" style="margin-bottom:10px;">
+          <div>
+            <strong style="color:#bae6fd;">PACS report text</strong>
+            <div class="tiny">Use this box if clipboard or download is blocked.</div>
+          </div>
+          <button id="hideReport">Hide report text</button>
+        </div>
+        <textarea id="reportTextArea" readonly></textarea>
+        <p class="tiny" style="margin-top:8px;">Click inside the box to select all, then copy/paste into PACS.</p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Inflation time</th>
+              <th>Deflation time</th>
+              <th>Occlusion duration</th>
+              <th>Reperfusion interval before</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="episodeTableBody">
+            <tr>
+              <td colspan="6" class="subtle">No episodes recorded yet. Press “REBOA Balloon Up” at the point of inflation.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="grid-2" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+        <div>
+          <div class="subtle">Completed inflation episodes</div>
+          <div id="completedCount" class="timer-value">0</div>
+        </div>
+        <div>
+          <div class="subtle">Total cumulative occlusion</div>
+          <div id="totalOcclusion" class="timer-value">0 min 00 sec</div>
+        </div>
+        <div>
+          <div class="subtle">Longest single occlusion</div>
+          <div id="longestOcclusion" class="timer-value">0 min 00 sec</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 style="color:#fca5a5;">Reset logger</h2>
+      <p class="subtle">Use only when the current case has been fully copied/downloaded or is no longer needed.</p>
+
+      <div id="resetConfirm" class="confirm reset" style="display:none;margin-top:12px;">
+        <div style="font-size:18px;font-weight:800;">Confirm reset</div>
+        <p style="margin-top:4px;">
+          This will delete all data on this page, including procedure details, baseline values, occlusion episodes, notes, timers and generated report text. This cannot be undone.
+        </p>
+        <div class="confirm-actions">
+          <button class="yes-red" id="confirmResetBtn">Yes, delete all data and reset</button>
+          <button id="cancelResetBtn">Cancel</button>
+        </div>
+      </div>
+
+      <button id="resetBtn" style="margin-top:12px;border-color:#dc2626;color:#fecaca;">Reset logger and delete all data</button>
+    </section>
+
+    <footer class="footer">
+      Developed by the Department of Interventional Radiology, The Royal London Hospital.
+    </footer>
+  </div>
+
+  <iframe name="googleSyncFrame" class="hidden-frame" id="googleSyncFrame"></iframe>
+  <form id="googleSyncForm" class="hidden-form" method="POST" target="googleSyncFrame" action="https://script.google.com/macros/s/AKfycbyz7Vsg6j4jO7v7wb1c5QPKvJCc1Jp8bK_PgOhlMBIp41CJWvqWRwr_ji4QSTSO9Yzo/exec">
+    <input name="eventType" />
+    <input name="loggedAtIso" />
+    <input name="institution" />
+    <input name="procedureDate" />
+    <input name="zone" />
+    <input name="accessSite" />
+    <input name="accessSize" />
+    <input name="occlusionCatheter" />
+    <input name="catheterLength" />
+    <input name="inflationVolume" />
+    <input name="mapPre" />
+    <input name="mapPost" />
+    <input name="procedureCompleteTime" />
+    <input name="completedEpisodes" />
+    <input name="totalOcclusionSeconds" />
+    <input name="longestOcclusionSeconds" />
+    <textarea name="reportText"></textarea>
+    <textarea name="episodeJson"></textarea>
+  </form>
+
+  <script>
+    const GOOGLE_ENDPOINT = "https://script.google.com/macros/s/AKfycbyz7Vsg6j4jO7v7wb1c5QPKvJCc1Jp8bK_PgOhlMBIp41CJWvqWRwr_ji4QSTSO9Yzo/exec";
+
+    const state = {
+      isInflated: false,
+      episodes: [],
+      currentStart: null,
+      procedureEndTime: null,
+      timer: null,
+      backupAttempted: false,
+      backupAttemptTime: null,
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function init() {
+      $("procedureDate").value = new Date().toISOString().slice(0, 10);
+
+      $("balloonToggle").addEventListener("click", handleToggle);
+      $("procedureComplete").addEventListener("click", showProcedureCompleteConfirm);
+      $("confirmProcedureBtn").addEventListener("click", confirmProcedureComplete);
+      $("cancelProcedureBtn").addEventListener("click", hideProcedureCompleteConfirm);
+      $("copyPacs").addEventListener("click", copyReport);
+      $("downloadText").addEventListener("click", downloadText);
+      $("hideReport").addEventListener("click", () => $("reportBox").style.display = "none");
+      $("resetBtn").addEventListener("click", () => $("resetConfirm").style.display = "block");
+      $("confirmResetBtn").addEventListener("click", confirmReset);
+      $("cancelResetBtn").addEventListener("click", () => $("resetConfirm").style.display = "none");
+      $("reportTextArea").addEventListener("focus", (event) => event.target.select());
+
+      render();
+    }
+
+    function formatClock(date) {
+      if (!date) return "";
+      return new Intl.DateTimeFormat("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      }).format(date);
+    }
+
+    function formatDateTime(date) {
+      if (!date) return "";
+      return new Intl.DateTimeFormat("en-GB", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      }).format(date);
+    }
+
+    function durationSeconds(start, end) {
+      if (!start || !end) return null;
+      return Math.max(0, Math.round((end.getTime() - start.getTime()) / 1000));
+    }
+
+    function formatDuration(seconds) {
+      if (seconds === null || seconds === undefined) return "";
+      const wholeSeconds = Math.max(0, Math.floor(seconds));
+      const mins = Math.floor(wholeSeconds / 60);
+      const secs = wholeSeconds % 60;
+      return `${mins} min ${String(secs).padStart(2, "0")} sec`;
+    }
+
+    function escapeTsv(value) {
+      const text = String(value ?? "");
+      if (/[\t\n\r"]/u.test(text)) {
+        return `"${text.replace(/"/g, '""')}"`;
+      }
+      return text;
+    }
+
+    function makeId() {
+      if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
+      return `episode-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    }
+
+    function getFieldValues() {
+      return {
+        institution: $("institution").value,
+        procedureDate: $("procedureDate").value,
+        zone: $("zone").value,
+        accessSite: $("accessSite").value,
+        accessSize: $("accessSize").value,
+        occlusionCatheter: $("occlusionCatheter").value,
+        catheterLength: $("catheterLength").value,
+        inflationVolume: $("inflationVolume").value,
+        mapPre: $("mapPre").value,
+        mapPost: $("mapPost").value,
+      };
+    }
+
+    function getTotals() {
+      const completed = state.episodes.filter((episode) => episode.inflationTime && episode.deflationTime);
+      const totalOcclusionSeconds = completed.reduce(
+        (sum, episode) => sum + (durationSeconds(episode.inflationTime, episode.deflationTime) || 0),
+        0
+      );
+      const longestOcclusionSeconds = completed.reduce(
+        (max, episode) => Math.max(max, durationSeconds(episode.inflationTime, episode.deflationTime) || 0),
+        0
+      );
+      return { completed, totalOcclusionSeconds, longestOcclusionSeconds };
+    }
+
+    function handleToggle() {
+      if (state.procedureEndTime) return;
+
+      const now = new Date();
+
+      if (!state.isInflated) {
+        const previous = state.episodes[state.episodes.length - 1];
+        const reperfusionSeconds = previous && previous.deflationTime ? durationSeconds(previous.deflationTime, now) : null;
+
+        state.episodes.push({
+          id: makeId(),
+          number: state.episodes.length + 1,
+          inflationTime: now,
+          deflationTime: null,
+          notes: "",
+          reperfusionBeforeInflationSeconds: reperfusionSeconds,
+        });
+
+        state.currentStart = now;
+        state.isInflated = true;
+        startTimer();
+        render();
+        return;
+      }
+
+      const lastEpisode = state.episodes[state.episodes.length - 1];
+      if (!lastEpisode || lastEpisode.deflationTime) return;
+
+      lastEpisode.deflationTime = now;
+      state.currentStart = null;
+      state.isInflated = false;
+      startTimer();
+      render();
+    }
+
+    function showProcedureCompleteConfirm() {
+      if (state.procedureEndTime) return;
+      $("procedureConfirmText").textContent =
+        "This will stop the active timers and disable further balloon event entry." +
+        (state.isInflated ? " The balloon is currently marked as inflated, so this will also record balloon down at the current time." : "");
+      $("procedureConfirm").style.display = "block";
+    }
+
+    function hideProcedureCompleteConfirm() {
+      $("procedureConfirm").style.display = "none";
+    }
+
+    function confirmProcedureComplete() {
+      if (state.procedureEndTime) return;
+
+      const now = new Date();
+
+      if (state.isInflated) {
+        const lastEpisode = state.episodes[state.episodes.length - 1];
+        if (lastEpisode && !lastEpisode.deflationTime) {
+          lastEpisode.deflationTime = now;
+        }
+        state.isInflated = false;
+        state.currentStart = null;
+      }
+
+      state.procedureEndTime = now;
+      hideProcedureCompleteConfirm();
+      stopTimer();
+      backupOnce("PROCEDURE_COMPLETE");
+      render();
+    }
+
+    function startTimer() {
+      stopTimer();
+      if (state.procedureEndTime) return;
+      state.timer = window.setInterval(render, 1000);
+    }
+
+    function stopTimer() {
+      if (state.timer) window.clearInterval(state.timer);
+      state.timer = null;
+    }
+
+    function updateEpisodeNotes(id, value) {
+      const episode = state.episodes.find((item) => item.id === id);
+      if (episode) episode.notes = value;
+      render(false);
+    }
+
+    function buildReportText() {
+      const fields = getFieldValues();
+      const totals = getTotals();
+
+      const header = [
+        "Inflation No.",
+        "Inflation Time",
+        "Deflation Time",
+        "Occlusion Duration",
+        "Reperfusion Interval Before This Inflation",
+        "Notes",
+      ];
+
+      const rows = state.episodes.map((episode) => [
+        episode.number,
+        formatDateTime(episode.inflationTime),
+        formatDateTime(episode.deflationTime),
+        formatDuration(durationSeconds(episode.inflationTime, episode.deflationTime)),
+        formatDuration(episode.reperfusionBeforeInflationSeconds),
+        episode.notes,
+      ]);
+
+      const table = [header, ...rows]
+        .map((row) => row.map(escapeTsv).join("\t"))
+        .join("\n");
+
+      return [
+        "AORTIC OCCLUSION LOG",
+        `Institution: ${fields.institution || ""}`,
+        `Date: ${fields.procedureDate || ""}`,
+        `REBOA Zone: ${fields.zone || ""}`,
+        `Access site: ${fields.accessSite || ""}`,
+        `Access size: ${fields.accessSize ? `${fields.accessSize} Fr` : ""}`,
+        `Occlusion catheter: ${fields.occlusionCatheter || ""}`,
+        `Catheter length: ${fields.catheterLength ? `${fields.catheterLength} cm` : ""}`,
+        `Inflation volume: ${fields.inflationVolume ? `${fields.inflationVolume} mL` : ""}`,
+        `MAP pre: ${fields.mapPre ? `${fields.mapPre} mmHg` : ""}`,
+        `MAP post: ${fields.mapPost ? `${fields.mapPost} mmHg` : ""}`,
+        `Procedure complete time: ${formatDateTime(state.procedureEndTime)}`,
+        "",
+        table,
+        "",
+        `Total completed occlusion episodes: ${totals.completed.length}`,
+        `Total cumulative occlusion time: ${formatDuration(totals.totalOcclusionSeconds)}`,
+        `Longest single occlusion: ${formatDuration(totals.longestOcclusionSeconds)}`,
+        "",
+      ].join("\n");
+    }
+
+    async function copyReport() {
+      const text = buildReportText();
+      showReportText(text);
+      backupOnce("COPY_PACS_REPORT");
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          setStatus("Copied PACS report text to clipboard");
+        } else {
+          throw new Error("Clipboard unavailable");
+        }
+      } catch {
+        setStatus("Clipboard blocked. Report text is shown below — select and copy it manually.");
+      }
+    }
+
+    function downloadText() {
+      const reportText = buildReportText();
+      showReportText(reportText);
+      backupOnce("DOWNLOAD_TEXT");
+
+      try {
+        const blob = new Blob([reportText], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = `aortic-occlusion-log-${$("procedureDate").value || "procedure"}.txt`;
+        anchor.rel = "noopener";
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+        setStatus("Download started. If nothing downloaded, use the report text shown below.");
+      } catch {
+        setStatus("Download blocked. Report text is shown below — select and copy it manually.");
+      }
+    }
+
+    function showReportText(text) {
+      $("reportTextArea").value = text;
+      $("reportBox").style.display = "block";
+    }
+
+    function setStatus(message) {
+      const status = $("copyStatus");
+      status.textContent = message;
+      status.style.display = "block";
+      window.setTimeout(() => {
+        status.textContent = "";
+        status.style.display = "none";
+      }, 4200);
+    }
+
+    function backupOnce(eventType) {
+      if (state.backupAttempted) return;
+
+      state.backupAttempted = true;
+      state.backupAttemptTime = new Date();
+      submitGoogleBackup(eventType);
+    }
+
+    function submitGoogleBackup(eventType) {
+      try {
+        const fields = getFieldValues();
+        const totals = getTotals();
+        const form = $("googleSyncForm");
+
+        form.action = GOOGLE_ENDPOINT;
+        setFormValue(form, "eventType", eventType);
+        setFormValue(form, "loggedAtIso", new Date().toISOString());
+        setFormValue(form, "institution", fields.institution);
+        setFormValue(form, "procedureDate", fields.procedureDate);
+        setFormValue(form, "zone", fields.zone);
+        setFormValue(form, "accessSite", fields.accessSite);
+        setFormValue(form, "accessSize", fields.accessSize);
+        setFormValue(form, "occlusionCatheter", fields.occlusionCatheter);
+        setFormValue(form, "catheterLength", fields.catheterLength);
+        setFormValue(form, "inflationVolume", fields.inflationVolume);
+        setFormValue(form, "mapPre", fields.mapPre);
+        setFormValue(form, "mapPost", fields.mapPost);
+        setFormValue(form, "procedureCompleteTime", formatDateTime(state.procedureEndTime));
+        setFormValue(form, "completedEpisodes", String(totals.completed.length));
+        setFormValue(form, "totalOcclusionSeconds", String(totals.totalOcclusionSeconds));
+        setFormValue(form, "longestOcclusionSeconds", String(totals.longestOcclusionSeconds));
+        setFormValue(form, "reportText", buildReportText());
+        setFormValue(form, "episodeJson", JSON.stringify(state.episodes.map((episode) => ({
+          number: episode.number,
+          inflationTimeIso: episode.inflationTime ? episode.inflationTime.toISOString() : "",
+          deflationTimeIso: episode.deflationTime ? episode.deflationTime.toISOString() : "",
+          occlusionDurationSeconds: durationSeconds(episode.inflationTime, episode.deflationTime),
+          reperfusionBeforeInflationSeconds: episode.reperfusionBeforeInflationSeconds,
+          notes: episode.notes,
+        }))));
+
+        form.submit();
+        setStatus("Google Sheet backup sent/attempted once for this procedure.");
+      } catch (error) {
+        setStatus("Google Sheet backup could not be attempted. Please use Copy PACS report text.");
+      }
+    }
+
+    function setFormValue(form, name, value) {
+      const field = form.elements[name];
+      if (field) field.value = value ?? "";
+    }
+
+    function confirmReset() {
+      stopTimer();
+
+      state.isInflated = false;
+      state.episodes = [];
+      state.currentStart = null;
+      state.procedureEndTime = null;
+      state.backupAttempted = false;
+      state.backupAttemptTime = null;
+
+      $("institution").value = "";
+      $("procedureDate").value = new Date().toISOString().slice(0, 10);
+      $("zone").value = "Zone III";
+      $("accessSite").value = "Right common femoral artery";
+      $("accessSize").value = "5";
+      $("occlusionCatheter").value = "COBRA OS";
+      $("catheterLength").value = "";
+      $("inflationVolume").value = "";
+      $("mapPre").value = "";
+      $("mapPost").value = "";
+      $("reportTextArea").value = "";
+
+      $("resetConfirm").style.display = "none";
+      $("reportBox").style.display = "none";
+      $("procedureConfirm").style.display = "none";
+
+      render();
+    }
+
+    function render(rebuildTable = true) {
+      const now = new Date();
+      const totals = getTotals();
+      const lastEpisode = state.episodes[state.episodes.length - 1];
+      const lastDeflationTime = lastEpisode ? lastEpisode.deflationTime : null;
+
+      $("stateText").className = state.procedureEndTime ? "state-complete" : state.isInflated ? "state-inflated" : "state-deflated";
+      $("stateText").textContent = state.procedureEndTime
+        ? `Procedure complete at ${formatClock(state.procedureEndTime)}`
+        : state.isInflated
+          ? "Balloon inflated / occluding"
+          : "Balloon deflated";
+
+      $("balloonToggle").textContent = state.isInflated ? "REBOA Balloon Down" : "REBOA Balloon Up";
+      $("balloonToggle").className = `balloon-btn ${state.isInflated ? "balloon-down" : "balloon-up"}`;
+      $("balloonToggle").disabled = Boolean(state.procedureEndTime);
+      $("procedureComplete").disabled = Boolean(state.procedureEndTime);
+
+      $("currentInflationStarted").textContent = state.currentStart ? formatClock(state.currentStart) : "—";
+      $("activeOcclusionDuration").textContent = state.isInflated && state.currentStart ? formatDuration(durationSeconds(state.currentStart, now)) : "—";
+      $("currentDeflationDuration").textContent = !state.procedureEndTime && !state.isInflated && lastDeflationTime ? formatDuration(durationSeconds(lastDeflationTime, now)) : "—";
+      $("procedureCompleteTimeDisplay").textContent = state.procedureEndTime ? formatClock(state.procedureEndTime) : "—";
+      $("cumulativeOcclusion").textContent = formatDuration(totals.totalOcclusionSeconds);
+
+      $("completedCount").textContent = String(totals.completed.length);
+      $("totalOcclusion").textContent = formatDuration(totals.totalOcclusionSeconds);
+      $("longestOcclusion").textContent = formatDuration(totals.longestOcclusionSeconds);
+
+      if (rebuildTable) renderTable();
+
+      if (shouldTimerRun()) startTimer();
+    }
+
+    function shouldTimerRun() {
+      const latestEpisode = state.episodes[state.episodes.length - 1];
+      const latestDeflationTime = latestEpisode ? latestEpisode.deflationTime : null;
+      return !state.procedureEndTime && (state.isInflated || Boolean(latestDeflationTime));
+    }
+
+    function renderTable() {
+      const body = $("episodeTableBody");
+
+      if (state.episodes.length === 0) {
+        body.innerHTML = '<tr><td colspan="6" class="subtle">No episodes recorded yet. Press “REBOA Balloon Up” at the point of inflation.</td></tr>';
+        return;
+      }
+
+      body.innerHTML = "";
+      for (const episode of state.episodes) {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${episode.number}</td>
+          <td>${formatDateTime(episode.inflationTime)}</td>
+          <td>${formatDateTime(episode.deflationTime) || "In progress"}</td>
+          <td>${formatDuration(durationSeconds(episode.inflationTime, episode.deflationTime)) || "—"}</td>
+          <td>${formatDuration(episode.reperfusionBeforeInflationSeconds) || "—"}</td>
+          <td></td>
+        `;
+
+        const textarea = document.createElement("textarea");
+        textarea.className = "notes";
+        textarea.placeholder = "Optional notes";
+        textarea.value = episode.notes;
+        textarea.addEventListener("input", (event) => updateEpisodeNotes(episode.id, event.target.value));
+        row.lastElementChild.appendChild(textarea);
+        body.appendChild(row);
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>
